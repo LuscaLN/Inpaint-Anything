@@ -17,6 +17,10 @@ def setup_args(parser):
         help="Path to a single input img",
     )
     parser.add_argument(
+        "--input_mask", type=str, required=True,
+        help="Path to a single input mask",
+    )
+    parser.add_argument(
         "--coords_type", type=str, required=True,
         default="key_in", choices=["click", "key_in"], 
         help="The way to select coords",
@@ -82,7 +86,9 @@ if __name__ == "__main__":
     elif args.coords_type == "key_in":
         latest_coords = args.point_coords
     img = load_img_to_array(args.input_img)
-
+    
+    masks = load_img_to_array(args.input_mask)
+    '''
     masks, _, _ = predict_masks_with_sam(
         img,
         [latest_coords],
@@ -91,6 +97,7 @@ if __name__ == "__main__":
         ckpt_p=args.sam_ckpt,
         device=device,
     )
+    '''
     masks = masks.astype(np.uint8) * 255
 
     # dilate mask to avoid unmasked edge effect
