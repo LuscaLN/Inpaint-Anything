@@ -88,7 +88,9 @@ if __name__ == "__main__":
     img = load_img_to_array(args.input_img)
     
     masks = load_img_to_array(args.input_mask)
+    print(masks.shape)
     masks = np.expand_dims(masks, 0)
+    print(masks.shape)
     '''
     masks, _, _ = predict_masks_with_sam(
         img,
