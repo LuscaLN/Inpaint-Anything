@@ -91,7 +91,11 @@ if __name__ == "__main__":
     print(masks.shape)
     masks = np.expand_dims(masks, 0)
     print(masks.shape)
-    masks = np.squeeze(masks, 3)
+    #masks = np.squeeze(masks, 3)
+
+    masks = masks[:,:,0]
+    print(masks.shape)
+    
     '''
     masks, _, _ = predict_masks_with_sam(
         img,
