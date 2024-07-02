@@ -17,20 +17,20 @@ def setup_args(parser):
         help="Path to a single input img",
     )
     parser.add_argument(
-        "--input_mask", type=str, required=True,
+        "--input_mask", type=str, required=False,
         help="Path to a single input mask",
     )
     parser.add_argument(
-        "--coords_type", type=str, required=True,
+        "--coords_type", type=str, required=False,
         default="key_in", choices=["click", "key_in"], 
         help="The way to select coords",
     )
     parser.add_argument(
-        "--point_coords", type=float, nargs='+', required=True,
+        "--point_coords", type=float, nargs='+', required=False,
         help="The coordinate of the point prompt, [coord_W coord_H].",
     )
     parser.add_argument(
-        "--point_labels", type=int, nargs='+', required=True,
+        "--point_labels", type=int, nargs='+', required=False,
         help="The labels of the point prompt, 1 or 0.",
     )
     parser.add_argument(
@@ -43,11 +43,11 @@ def setup_args(parser):
     )
     parser.add_argument(
         "--sam_model_type", type=str,
-        default="vit_h", choices=['vit_h', 'vit_l', 'vit_b', 'vit_t'],
+        default=None, choices=['vit_h', 'vit_l', 'vit_b', 'vit_t'],
         help="The type of sam model to load. Default: 'vit_h"
     )
     parser.add_argument(
-        "--sam_ckpt", type=str, required=True,
+        "--sam_ckpt", type=str, required=False,
         help="The path to the SAM checkpoint to use for mask generation.",
     )
     parser.add_argument(
@@ -86,26 +86,23 @@ if __name__ == "__main__":
     elif args.coords_type == "key_in":
         latest_coords = args.point_coords
     img = load_img_to_array(args.input_img)
-    
-    masks = load_img_to_array(args.input_mask)
-    print(masks.shape)
-    masks = np.expand_dims(masks, 0)
-    print(masks.shape)
-    #masks = np.squeeze(masks, 3)
 
-    masks = masks[:,:,:,0]
-    print(masks.shape)
+    #Use an existing mask or use SAM to generate a mask for the polyp
+    if args.sam_model_type is None:
+        masks = load_img_to_array(args.input_mask)
+        masks = np.expand_dims(masks, 0)
+        masks = masks[:,:,:,0]
+        
+    else: 
+        masks, _, _ = predict_masks_with_sam(
+            img,
+            [latest_coords],
+            args.point_labels,
+            model_type=args.sam_model_type,
+            ckpt_p=args.sam_ckpt,
+            device=device,
+        )
     
-    '''
-    masks, _, _ = predict_masks_with_sam(
-        img,
-        [latest_coords],
-        args.point_labels,
-        model_type=args.sam_model_type,
-        ckpt_p=args.sam_ckpt,
-        device=device,
-    )
-    '''
     masks = masks.astype(np.uint8) * 255
 
     # dilate mask to avoid unmasked edge effect
